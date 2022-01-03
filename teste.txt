@@ -1,0 +1,6 @@
+aas2d<=integer;
+% comentando pra cacete aqui
+%aqui tb
+b:=33.5;
+integer modular;
+b<<<1;

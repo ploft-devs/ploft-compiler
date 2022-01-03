@@ -1,31 +1,82 @@
-#include<string>
-#include<fstream>
-#include<vector>
+#include "Token.hpp"
 
-std::string Token::getName(){
-    return this->name;
+int Token::getTag(){
+    return this->tag;
+}
+Token::Token(){
+}
+std::string Token::toString(){
+    return std::to_string(tag);
 }
 
-std::string Token::getValue(){
-    return this->value;
+Num::Num(int val):Token(Tag::NUM){
+    value=val;
 }
 
-std::pair<std::string,std::string> Token::getPair(){
-    return std::pair<std::string,std::string>(this->name, this->value);
+std::string Num::toString(){
+    return std::to_string(value);
 }
 
-Token* setName(std::string newName){
-    this->name=newName;
-    return this;
+Word::Word(std::string lex, int tag):Token(tag){
+    lexeme=lex;
 }
 
-Token* setValue(std::string newValue){
-    this->value=newValue;
-    return this;
+Word::Word():Token(){
+    lexeme="NULL";
 }
 
-Token* setPair(std::pair<std::string,std::string> pair){
-    this->name=pair.first();
-    this->value=pair.second();
-    return this;
+std::string Word::toString(){
+    return lexeme;
 }
+
+//Palavras reservadas
+
+//ops
+Word Word::And = Word("and",Tag::AND);
+Word Word::Or = Word("or",Tag::OR);
+Word Word::Eq = Word("=",Tag::EQ);
+Word Word::Ne = Word("<>",Tag::NE);
+Word Word::Lt = Word("<",Tag::LT);
+Word Word::Gt = Word(">",Tag::GT);
+Word Word::Le = Word("<=",Tag::LE);
+Word Word::Ll = Word("<<",Tag::LL);
+Word Word::Lll = Word("<<<",Tag::LLL);
+Word Word::Ge = Word(">=",Tag::GE);
+Word Word::Gg = Word(">>",Tag::GG);
+Word Word::Ggg = Word(">>>",Tag::GGG);
+Word Word::Mod = Word("mod",Tag::MOD);
+Word Word::Add = Word("+",Tag::ADD);
+Word Word::Sub = Word("-",Tag::SUB);
+Word Word::Mlt = Word("*",Tag::MLT);
+Word Word::Div = Word("/",Tag::DIV);
+Word Word::Atrib = Word(":=",Tag::ATRIB);
+Word Word::Opar = Word("(",Tag::OPAR);
+Word Word::Cpar = Word(")",Tag::CPAR);
+Word Word::Smc = Word(";",Tag::SMC);
+Word Word::Dqut = Word("\"",Tag::DQUT);
+Word Word::Qst = Word("?",Tag::QST);
+Word Word::Clm = Word(":",Tag::CLM);
+Word Word::Pnt = Word(".",Tag::PNT);
+Word Word::Com = Word(",",Tag::COM);
+
+
+
+
+
+//Key Words
+Word Word::Prog = Word("program",Tag::PRG);
+Word Word::Beg = Word("begin",Tag::BGN);
+Word Word::End = Word("end",Tag::END);
+Word Word::Decl = Word("declare",Tag::DECL);
+Word Word::True = Word("true",Tag::TRUE);
+Word Word::False = Word("false",Tag::FALSE);
+Word Word::If = Word("if",Tag::IF);
+Word Word::Else = Word("else",Tag::ELSE);
+Word Word::Then = Word("then",Tag::THEN);
+Word Word::Do = Word("do",Tag::DO);
+Word Word::While = Word("while",Tag::WHILE);
+Word Word::For = Word("for",Tag::FOR);
+Word Word::Int = Word("integer",Tag::INT);
+Word Word::Dec = Word("decimal",Tag::DEC);
+Word Word::Read = Word("read",Tag::READ);
+Word Word::Write = Word("write",Tag::WRT);
