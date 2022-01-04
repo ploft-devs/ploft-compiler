@@ -44,4 +44,5 @@ int
                     Tag::OPAR=41,
                     Tag::CPAR=42,
                     Tag::TRUE=43,
-                    Tag::FALSE=44;
+                    Tag::FALSE=44,
+                    Tag::EoF=45;

@@ -47,7 +47,8 @@ class Tag{
                     OPAR,
                     CPAR,
                     TRUE,
-                    FALSE;
+                    FALSE,
+                    EoF;
 
 
                     

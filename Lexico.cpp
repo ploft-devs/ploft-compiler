@@ -140,6 +140,10 @@ Lexico::Lexico(std::fstream* src, Env* env){
     */
 }
 Token* Lexico::getToken(){
+    if(!src->good()){
+        Token* a = new Token(Tag::EoF);
+        return a;
+    }
     while(ch=='\t'||ch=='\r'||ch=='\b'||ch=='\n'||ch==' '|| ch=='%'){
         if(ch=='\n') line++;
         ch = src->get();
@@ -245,7 +249,7 @@ Token* Lexico::getToken(){
         env->put(word,*x);
         return x;
     }
-    Token* a = new Token(ch);
+    Word* a = new Word(std::string{ch}, -1);
     ch = src->get();
     return a;
 }
