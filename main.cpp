@@ -1,4 +1,5 @@
 #include "Lexico.hpp"
+#include "Syntax.hpp"
 #include <fstream>
 
 
@@ -22,9 +23,20 @@ void lexerTest(){
     }
 }
 
+void syntaxTest(){
+    std::fstream* op = new  std::fstream("program6.plft");
+    Env* amb = new Env();
+    Lexico l(op,amb);
+    Syntax s(l);
+    s.startAnalysis();
+
+}
 int main(){
     
     lexerTest();
+    syntaxTest();
     return 0;
 }
+
+
 

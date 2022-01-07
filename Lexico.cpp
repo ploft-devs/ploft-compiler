@@ -45,83 +45,7 @@ Lexico::Lexico(std::fstream* src, Env* env){
     reseve(Word::Write);
 
     /*
-    std::string newToken ="";
-    char c = src->get();
-    while(src.good()){
-        if(c=='%'){
-            while(c!='\n')
-                c = src->get();
-        }
-        else if (isLetter(c)){ 
-            //std::cout<<"\nLetter: "<<c;
-            newToken+=c;
-            c = src->get();
-        }
-        else if (isDigit(c)){
-            //std::cout<<"\nDigit: "<<c;
-            if(newToken==""){
-                while(isDigit(c)){
-                    //std::cout<<"\nDigit: "<<c;
-                    newToken+=c;
-                    c = src->get();
-                }
-                std::cout<<"\n->Constant: "<<newToken;
-                newToken="";
-            }
-            else {
-                newToken+=c;
-                c = src->get();
-            }
-        }
-        else if (isTerminal(std::string{c})){
-            if(newToken!=""){
-                if(isTerminal(newToken))
-                    std::cout<<"\n->Terminal: "<<newToken;
-                else
-                    std::cout<<"\n->Identifier: "<<newToken;
-                newToken="";
-            }
-            
-                newToken+=c;
-                //std::cout<<"\n->Terminal: "<<c;
-                c = src->get();
-                if(isTerminal(newToken+c)){
-                    newToken+=c;
-                    c = src->get();
-                    if(isTerminal(newToken+c)){
-                        newToken+=c;
-                        std::cout<<"\n->Terminal: "<<newToken;
-                        c = src->get();
-                    }
-                    else{
-                        std::cout<<"\n->Terminal: "<<newToken;
-                    }
-                }
-                else{
-                    std::cout<<"\n->Terminal: "<<newToken;
-                }
-                newToken="";
-            
-            
-        }
-        else if(c=='\n'){
-            if(newToken!=""){
-                if(isTerminal(newToken))
-                    std::cout<<"\n->Terminal: "<<newToken;
-                else
-                    std::cout<<"\n->Identifier: "<<newToken;
-                newToken="";
-            }
-            c = src->get();
-        }
-            
-        else if(c==' '){
-            if (isTerminal(newToken)){
-                std::cout<<"\n->Terminal: "<<newToken;
-                newToken="";
-            }
-            c = src->get();
-        }
+    
         else if(c=='\"'){
             c = src->get();
             while(c!='\"'){
@@ -159,6 +83,15 @@ Token* Lexico::getToken(){
         ch = src->get();
     }
     switch(ch){
+        case '"': {
+            std::string lit="";
+            do{
+                lit+=ch;
+                ch = src->get();
+            }while(ch!='"');
+            Word * n = new Word(lit,Tag::LIT);
+            return n;
+        }
         case '=': {
             ch = src->get();
             return &Word::Eq;
@@ -218,8 +151,6 @@ Token* Lexico::getToken(){
             return &Word::Cpar;
         case ';': ch = src->get();
             return &Word::Smc;
-        case '\"': ch = src->get();
-            return &Word::Dqut;
         case '?': ch = src->get();
             return &Word::Qst;
         case '.': ch = src->get();
