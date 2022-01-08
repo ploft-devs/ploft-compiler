@@ -12,7 +12,7 @@ bool Lexico::isLetter(char c){
     return std::find(letters.begin(), letters.end(),c)!=letters.end();
 }
 
-std::vector<char> Lexico::digits= {'1', '2', '3', '4', '5', '6', '7', '8', '9'};   
+std::vector<char> Lexico::digits= {'0','1', '2', '3', '4', '5', '6', '7', '8', '9'};   
 
 bool Lexico::isDigit(char c){
     return std::find(digits.begin(), digits.end(),c)!=digits.end();
@@ -180,6 +180,7 @@ Token* Lexico::getToken(){
         env->put(word,*x);
         return x;
     }
+    std::cout<<"\nLexer error: Unknown token '"<<ch<<"' on line "<<line<<".";
     Word* a = new Word(std::string{ch}, -1);
     ch = src->get();
     return a;

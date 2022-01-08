@@ -6,8 +6,11 @@ class Syntax{
 
     public:
     Token* nextToken(){
-        if(tokens.empty())
-            return lex.getToken();
+        if(tokens.empty()){
+            Token * x = lex.getToken();
+            std::cout<<"\nToken recebido do lexico: "<<x->getTag();
+            return x;
+        }
         else{
             auto x = tokens.top();
             tokens.pop();
@@ -34,15 +37,15 @@ class Syntax{
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::PRG){
                 b= b&&e1();
-                return b;
             }
-            erro("key-word 'program'", t->getTag());
+            else
+                erro("key-word 'program'", t->getTag());
             t = nextToken();
         }
         if(b==false)
-            std::cout<<"Failed parsing!!";
+            std::cout<<"\nFailed parsing!!";
         else
-            std::cout<<"Parsing successful!!";
+            std::cout<<"\nParsing successful!!";
         return b;
     }
 
@@ -54,7 +57,11 @@ class Syntax{
             if(t->getTag()==Tag::ID){
                 b= b&&e2();
             }
-            erro("identifier", t->getTag());
+            else{
+                erro("identifier", t->getTag());
+                b=false;
+            }
+            
             t = nextToken();
         }
         return b;
@@ -76,7 +83,10 @@ class Syntax{
             else if(t->getTag()==Tag::BODY){
                 b= b&&e0();
             }
-            erro("key-word 'begin' or 'declare'", t->getTag());
+            else{
+                erro("key-word 'begin' or 'declare'", t->getTag());
+                b=false;
+            }
             t = nextToken();
         }
         return b;
@@ -136,7 +146,7 @@ class Syntax{
             
                 case Tag::STMTLST :
                     b= b&&e10();
-                    break;
+                    return b;
 
                 case Tag::STMT :
                     b= b&&e11();
@@ -173,9 +183,13 @@ class Syntax{
                 case Tag::DO :
                     b= b&&e66();
                     break;
+                
+                default:
+                    erro("identifier, key-words 'if', 'while', 'read' or 'write' ", t->getTag());
+                    b=false;
 
             }
-            erro("identifier, key-words 'if', 'while', 'read' or 'write' ", t->getTag());
+            
             t = nextToken();
         }
         return b;
@@ -197,6 +211,12 @@ class Syntax{
                     addToken(n);
                     break;
                 }
+                case Tag::BODY :
+                {
+                    
+                    addToken(t);
+                    return b;;
+                }
 
                 case Tag::DEC :
                 {
@@ -215,7 +235,7 @@ class Syntax{
 
                 case Tag::DECLLST :
                     b=b&&e19();
-                    break;
+                    return b;
                 default:
                     b=false;
                     erro("key-word 'integer' or 'decimal'", t->getTag());
@@ -260,6 +280,8 @@ class Syntax{
     //factor->*id
     //factor->*num
     //factor->*"(" expression ")"
+    //num->*num
+    //num->*num . num
     bool e6(){
         Token* t = nextToken();
         bool b=true;
@@ -287,7 +309,7 @@ class Syntax{
 
                 case Tag::CONDITION :
                     b= b&&e26();
-                    break;
+                    return b;
 
                 case Tag::EXPRESSION :
                     b=b&&e27();
@@ -434,10 +456,10 @@ class Syntax{
             if(t->getTag()==Tag::END){
                 Token * n = new Token(Tag::BODY);
                 addToken(n);
-                return true;
+                return b;
             }
             b=false;
-            erro("key-word '('", t->getTag());
+            erro("key-word 'end'", t->getTag());
             t = nextToken();
         }
         return b;
@@ -452,7 +474,8 @@ class Syntax{
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::SMC){
-                b=b&&e34();
+                b=b&&e71();
+                break;
             }
             b=false;
             erro("key-word ';'", t->getTag());
@@ -508,8 +531,11 @@ class Syntax{
                     break;
 
                 case Tag::IDLST :
-                    b=b&&e36();
-                    break;
+                {
+                    Token* n = new Token(Tag::DECL);
+                    addToken(n);
+                    return b;
+                }
                 
                 default:
                     erro("identifier", t->getTag());
@@ -529,6 +555,7 @@ class Syntax{
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::SMC){
                 b=b&&e37();
+                return b;
             }
             b=false;
             erro("key-word ';'", t->getTag());
@@ -544,6 +571,7 @@ class Syntax{
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::BGN){
                 b=b&&e3();
+                break;
             }
             b=false;
             erro("key-word 'begin'", t->getTag());
@@ -591,9 +619,9 @@ class Syntax{
 
                 case Tag::SIMPLEEXPRESSION :
                 {
-                    Token* n = new Token(Tag::ASSIGNSTMT);
-                    addToken(n);
+                    b=b&&e73();
                     return b;
+                
                 }
                 case Tag::TERM :
                     b=b&&e29();
@@ -659,7 +687,7 @@ class Syntax{
 
                 case Tag::EXPRESSION :
                     b=b&&e38();
-                    break;
+                    return b;
 
                 case Tag::SIMPLEEXPRESSION :
                     b=b&&e28();
@@ -798,11 +826,11 @@ class Syntax{
             switch(t->getTag()){
                 case Tag::DO :
                     b= b&&e40();
-                    break;
+                    return b;
 
                 case Tag::THEN :
                     b= b&&e41();
-                    break;
+                    return b;
                     
                 default: 
                     erro("identifier, number or key-word '(' ", t->getTag());
@@ -844,7 +872,7 @@ class Syntax{
 
                 case Tag::RELOP :
                     b= b&&e43();
-                    break;
+                    return b;
 
                 case Tag::ADDOP :
                     b= b&&e44();
@@ -902,6 +930,7 @@ class Syntax{
                 default: 
                 {
                     Token* n = new Token(Tag::EXPRESSION);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -925,7 +954,7 @@ class Syntax{
             switch(t->getTag()){
                 case Tag::MULOP :
                     b= b&&e45();
-                    break;
+                    return b;
 
                 case Tag::MLT :
                 {
@@ -958,6 +987,7 @@ class Syntax{
                 default: 
                 {
                     Token* n = new Token(Tag::SIMPLEEXPRESSION);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -1019,7 +1049,7 @@ class Syntax{
             switch(t->getTag()){
                 case Tag::WRITEABLE :
                     b= b&&e47();
-                    break;
+                    return b;
 
                 case Tag::LIT :
                 {
@@ -1098,6 +1128,9 @@ class Syntax{
                 case Tag::IF : 
                     b= b&&e6();
                     break;
+                    
+                case Tag::STMTLST : 
+                    return b;
 
                 case Tag::WHILE :
                     b= b&&e7();
@@ -1137,6 +1170,7 @@ class Syntax{
                 default:
                 {
                     Token* n = new Token(Tag::STMTLST);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -1154,12 +1188,13 @@ class Syntax{
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
                 case Tag::COM :
-                    b= b&&e17();
-                    break;
+                    b= b&&e70();
+                    return b;
 
                 default: 
                 {
                     Token* n = new Token(Tag::IDLST);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -1215,12 +1250,13 @@ class Syntax{
                 case Tag::DECLLST :
                 {
                     b=b&&e19();
-                    break;
+                    return b;
                 }
                 
                 default:
                 {
                     Token* n = new Token(Tag::DECLLST);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -1345,7 +1381,7 @@ class Syntax{
             switch(t->getTag()){
                 case Tag::STMTLST:
                     b=b&&e49();
-                    break;
+                    return b;
                 case Tag::ID :
                     b= b&&e5();
                     break;
@@ -1454,8 +1490,11 @@ class Syntax{
                     break;
 
                 case Tag::SIMPLEEXPRESSION :
-                    b=b&&e51();
-                    break;
+                {
+                    Token* n = new Token(Tag::EXPRESSION);
+                    addToken(n);
+                    return b;
+                }
 
                 case Tag::TERM :
                     b=b&&e29();
@@ -1516,8 +1555,8 @@ class Syntax{
 
 
                 case Tag::TERM :
-                    b=b&&e53();
-                    break;
+                    b=b&&e72();
+                    return b;
 
                 case Tag::FACTORA :
                     b=b&&e30();
@@ -1571,8 +1610,12 @@ class Syntax{
 
 
                 case Tag::FACTORA :
-                    b=b&&e54();
-                    break;
+                {
+                    Token* n = new Token(Tag::TERM);
+                    addToken(n);
+                    return b;
+                }
+                    
 
                 case Tag::FACTOR :
                     b=b&&e31();
@@ -1652,6 +1695,7 @@ class Syntax{
             }
             else if(t->getTag()==Tag::ELSE){
                 b=b&&e55();
+                break;
             }
             b=false;
             erro("key-word 'end' or 'else'", t->getTag());
@@ -1957,7 +2001,7 @@ class Syntax{
             
                 case Tag::STMTLST :
                     b= b&&e61();
-                    break;
+                    return b;
 
                 case Tag::STMT :
                     b= b&&e11();
@@ -2083,6 +2127,7 @@ class Syntax{
                 default: 
                 {
                     Token* n = new Token(Tag::EXPRESSION);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -2251,6 +2296,7 @@ class Syntax{
                 default:
                 {
                     Token* n = new Token(Tag::SIMPLEEXPRESSION);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -2316,10 +2362,10 @@ class Syntax{
             
                 case Tag::STMTLST :
                     b= b&&e68();
-                    break;
+                    return b;
 
                 case Tag::STMT :
-                    b= b&&e11();
+                    b= b&&e74();
                     break;
             
                 case Tag::ASSIGNSTMT :
@@ -2403,6 +2449,7 @@ class Syntax{
                 default:
                 {
                     Token* n = new Token(Tag::WRITEABLE);
+                    addToken(t);
                     addToken(n);
                     return b;
                 }
@@ -2520,5 +2567,444 @@ class Syntax{
         return b;
     }
 
+    //decl->type *ident-list
+    //ident-lst->*id {"," id}
+    bool e70(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            switch(t->getTag()){
+                case Tag::ID :
+                    b=b&&e35();
+                    return b;
 
+                case Tag::IDLST :
+                {
+                    Token* n = new Token(Tag::DECL);
+                    addToken(n);
+                    return b;
+                }
+                
+                default:
+                    erro("identifier", t->getTag());
+                    b=false;
+
+            }
+            
+            t = nextToken();
+        }
+        return b;
+    }
+    
+    //body->begin *stmt-lst end
+    //stmt-lst-> *stmt; [stmt;]
+    //stmt->*assign-stmt
+    //stmt->*if-stmt
+    //stmt->*while-stmt
+    //stmt->*read-stmt
+    //stmt->*do-while-stmt 
+    //stmt->*shift-stmt 
+    //stmt->*write-stmt 
+    //assign-stmt->*id := simple_expr
+    //if-stmt->*if condition then stmt-list end
+    //if-stmt->*if condition then stmt-list else stmt-list end
+    //while-stmt->*while condition do stmt-list end
+    //read-stmt->*read ( id )
+    //write-stmt->*write ( writable )
+    //do-while-stmt->*do stmt-list stmt-suffix
+    //shift-stmt->*id shiftop constant
+    bool e71(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            switch(t->getTag()){
+                case Tag::ID :
+                    b= b&&e5(); 
+                    break;
+
+                case Tag::IF : 
+                    b= b&&e6();
+                    break;
+
+                case Tag::WHILE :
+                    b= b&&e7();
+                    break;
+            
+                case Tag::READ :
+                    b= b&&e8();
+                    break;
+            
+                case Tag::WRT :
+                    b= b&&e9();
+                    break;
+            
+                case Tag::STMTLST :
+                    b= b&&e10();
+                    return b;
+
+                case Tag::STMT :
+                    b= b&&e11();
+                    return b;
+            
+                case Tag::ASSIGNSTMT :
+                    b= b&&e12();
+                    break;
+            
+                case Tag::IFSTMT :
+                    b= b&&e13();
+                    break;
+
+                case Tag::WHILESTMT :
+                    b= b&&e14();
+                    break;
+
+                case Tag::DOWHILESTMT :
+                    b= b&&e64();
+                    break;
+
+                case Tag::SHIFTSTMT :
+                    b= b&&e65();
+                    break;
+
+                case Tag::READSTMT :
+                    b= b&&e15();
+                    break;
+            
+                case Tag::WRITESTMT :
+                    b= b&&e16();
+                    break;
+
+                case Tag::DO :
+                    b= b&&e66();
+                    break;
+                
+                default:
+                {
+                    Token*n = new Token(Tag::STMTLST);
+                    addToken(t);
+                    addToken(n);
+                    return b;
+                }
+
+            }
+            
+            t = nextToken();
+        }
+        return b;
+    }
+    
+    //simple-expr->simple-expr addop term*
+    //term->term *mulop factor-a
+    //mulop->*'*'
+    //mulop->*'/'
+    //mulop->*and
+    //mulop->*mod
+    bool e72(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            switch(t->getTag()){
+                case Tag::MULOP :
+                    b= b&&e45();
+                    return b;
+
+                case Tag::MLT :
+                {
+                    Token* n = new Token(Tag::MULOP);
+                    addToken(n);
+                    break;
+                }
+
+                case Tag::DIV :
+                {
+                    Token* n = new Token(Tag::MULOP);
+                    addToken(n);
+                    break;
+                }
+                
+                case Tag::AND :
+                {
+                    Token* n = new Token(Tag::MULOP);
+                    addToken(n);
+                    break;
+                }
+
+                case Tag::MOD :
+                {
+                    Token* n = new Token(Tag::MULOP);
+                    addToken(n);
+                    break;
+                }
+
+                default: 
+                {
+                    Token* n = new Token(Tag::SIMPLEEXPRESSION);
+                    addToken(t);
+                    addToken(n);
+                    return b;
+                }
+                    
+            }
+            t = nextToken();
+        }
+        return b;
+    }
+    
+    //assign-stmt->id := simple_expr*
+    //simple-expr->simple-expr *addop term
+    bool e73(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            switch(t->getTag()){
+
+                case Tag::ADDOP :
+                {
+                    b= b&&e44();
+                    Token* t = nextToken();
+                    Token* n = new Token(Tag::ASSIGNSTMT);
+                    addToken(n);
+                    return b;
+                }
+                    
+                    
+
+                case Tag::ADD :
+                {
+                    Token* n = new Token(Tag::ADDOP);
+                    addToken(n);
+                    break;
+                }
+
+                case Tag::SUB :
+                {
+                    Token* n = new Token(Tag::ADDOP);
+                    addToken(n);
+                    break;
+                }
+                
+                case Tag::OR :
+                {
+                    Token* n = new Token(Tag::ADDOP);
+                    addToken(n);
+                    break;
+                }
+
+                default:
+                {
+                    Token* n = new Token(Tag::ASSIGNSTMT);
+                    addToken(t);
+                    addToken(n);
+                    return b;
+                }
+                
+            }
+            t = nextToken();
+        }
+        return b;
+    }
+    
+    //stmt-lst-> stmt*; [stmt;]
+    bool e74(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            if(t->getTag()==Tag::SMC){
+                b=b&&e75();
+                break;
+            }
+            b=false;
+            erro("key-word ';'", t->getTag());
+            t = nextToken();
+        }
+        return b;
+    }
+    
+    //body->begin *stmt-lst end
+    //stmt-lst-> *stmt; [stmt;]
+    //stmt->*assign-stmt
+    //stmt->*if-stmt
+    //stmt->*while-stmt
+    //stmt->*read-stmt
+    //stmt->*do-while-stmt 
+    //stmt->*shift-stmt 
+    //stmt->*write-stmt 
+    //assign-stmt->*id := simple_expr
+    //if-stmt->*if condition then stmt-list end
+    //if-stmt->*if condition then stmt-list else stmt-list end
+    //while-stmt->*while condition do stmt-list end
+    //read-stmt->*read ( id )
+    //write-stmt->*write ( writable )
+    //do-while-stmt->*do stmt-list stmt-suffix
+    //shift-stmt->*id shiftop constant
+    bool e75(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            switch(t->getTag()){
+                case Tag::ID :
+                    b= b&&e5(); 
+                    break;
+
+                case Tag::IF : 
+                    b= b&&e6();
+                    break;
+
+                case Tag::WHILE :
+                    b= b&&e76();
+                    break;
+            
+                case Tag::READ :
+                    b= b&&e8();
+                    break;
+            
+                case Tag::WRT :
+                    b= b&&e9();
+                    break;
+            
+                case Tag::STMTLST :
+                    b= b&&e10();
+                    return b;
+
+                case Tag::STMT :
+                    b= b&&e11();
+                    return b;
+            
+                case Tag::ASSIGNSTMT :
+                    b= b&&e12();
+                    break;
+            
+                case Tag::IFSTMT :
+                    b= b&&e13();
+                    break;
+
+                case Tag::WHILESTMT :
+                    b= b&&e14();
+                    break;
+
+                case Tag::DOWHILESTMT :
+                    b= b&&e64();
+                    break;
+
+                case Tag::SHIFTSTMT :
+                    b= b&&e65();
+                    break;
+
+                case Tag::READSTMT :
+                    b= b&&e15();
+                    break;
+            
+                case Tag::WRITESTMT :
+                    b= b&&e16();
+                    break;
+
+                case Tag::DO :
+                    b= b&&e66();
+                    break;
+                
+                default:
+                {
+                    Token*n = new Token(Tag::STMTLST);
+                    addToken(t);
+                    addToken(n);
+                    return b;
+                }
+
+            }
+            
+            t = nextToken();
+        }
+        return b;
+    }
+    
+    
+    //while-stmt->while *condition do stmt-list end
+    //stmt-suffix->while *condition
+    bool e76(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            switch(t->getTag()){
+                case Tag::OPAR :
+                    b= b&&e21();
+                    break;
+
+                case Tag::NOT :
+                    b= b&&e22();
+                    break;
+
+                case Tag::SUB :
+                    b= b&&e23();
+                    break;
+
+                case Tag::ID :
+                    b= b&&e24();
+                    break;
+
+                case Tag::NUM :
+                    b= b&&e25();
+                    break;
+
+                case Tag::CONDITION :
+                    b= b&&e78();
+                    return b;
+
+                case Tag::EXPRESSION :
+                    b=b&&e27();
+                    break;
+
+                case Tag::SIMPLEEXPRESSION :
+                    b=b&&e28();
+                    break;
+
+                case Tag::TERM :
+                    b=b&&e29();
+                    break;
+
+                case Tag::FACTORA :
+                    b=b&&e30();
+                    break;
+
+                case Tag::FACTOR :
+                    b=b&&e31();
+                    break;
+
+                default:
+                    erro("identifier, number, key-words '(' , 'not' or '-'", t->getTag());
+                    b=false;
+            }
+
+            
+            t = nextToken();
+        }
+        return b;
+    }
+
+    //while-stmt->while condition *do stmt-list end
+    //stmt-suffix->while condition*
+    bool e78(){
+        Token* t = nextToken();
+        bool b=true;
+        while(t->getTag()!=Tag::EoF){
+            switch(t->getTag()){
+
+                case Tag::DO :
+                {
+                    b= b&&e40();
+                    return b;
+                }
+                    
+                default:
+                {
+                    Token* n = new Token(Tag::STMTSUFFIX);
+                    addToken(t);
+                    addToken(n);
+                    return b;
+                }
+                
+            }
+            t = nextToken();
+        }
+        return b;
+    }
 };
