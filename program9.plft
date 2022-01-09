@@ -1,0 +1,11 @@
+program teste6
+declare
+    integer a,b;
+begin
+    read(a);
+    read(b);
+    do
+        a:=a+1;
+        write(a);
+    while(a<b);
+end

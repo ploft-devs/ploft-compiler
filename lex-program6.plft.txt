@@ -1,0 +1,68 @@
+
+TAG: 0	LEX: program
+ID: teste6
+TAG: 7	LEX: declare
+TAG: 3	LEX: integer
+ID: a
+TAG: 32	LEX: ,
+ID: b
+TAG: 32	LEX: ,
+ID: c
+TAG: 32	LEX: ,
+ID: maior
+TAG: 33	LEX: ;
+TAG: 1	LEX: begin
+TAG: 9	LEX: read
+TAG: 41	LEX: (
+ID: a
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 9	LEX: read
+TAG: 41	LEX: (
+ID: b
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 9	LEX: read
+TAG: 41	LEX: (
+ID: c
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 5	LEX: if
+TAG: 41	LEX: (
+ID: a
+TAG: 19	LEX: >
+ID: b
+TAG: 39	LEX: and
+ID: a
+TAG: 19	LEX: >
+ID: c
+TAG: 42	LEX: )
+TAG: 8	LEX: then
+ID: maior
+TAG: 15	LEX: :=
+ID: a
+TAG: 6	LEX: else
+TAG: 5	LEX: if
+TAG: 41	LEX: (
+ID: b
+TAG: 19	LEX: >
+ID: c
+TAG: 42	LEX: )
+TAG: 8	LEX: then
+ID: maior
+TAG: 15	LEX: :=
+ID: b
+TAG: 6	LEX: else
+ID: maior
+TAG: 15	LEX: :=
+ID: c
+TAG: 2	LEX: end
+TAG: 2	LEX: end
+TAG: 33	LEX: ;
+TAG: 10	LEX: write
+TAG: 41	LEX: (
+ID: maior
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 2	LEX: end
+EOF

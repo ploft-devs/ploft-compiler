@@ -83,12 +83,14 @@ Token* Lexico::getToken(){
         ch = src->get();
     }
     switch(ch){
-        case '"': {
+        case '\"': {
             std::string lit="";
+            ch = src->get();
             do{
                 lit+=ch;
                 ch = src->get();
-            }while(ch!='"');
+            }while(ch!='\"');
+            ch = src->get();
             Word * n = new Word(lit,Tag::LIT);
             return n;
         }

@@ -1,21 +1,19 @@
 program teste6
 declare
-    integer a,b;
-    decimal c;
+    integer a, b, c, maior;
 begin
     read(a);
     read(b);
     read(c);
-    c:=1;
-    a:=a+b;
-    b:=a*b;
-    if(a>b) then
-        write(a);
-        a:=b;
+    % identifica o maior
+    if ( a>b and a>c ) then
+        maior := a
     else
-        write(b);
+        if (b>c) then
+            maior := b
+        else
+            maior := c
+        end
     end;
-    do
-        a:=a+b;
-    while(a<b);
+    write(maior);
 end

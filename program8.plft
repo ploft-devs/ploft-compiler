@@ -1,0 +1,13 @@
+program teste6
+declare
+    integer a,b;
+begin
+    read(a);
+    read(b);
+    write("maior: ");
+    if(a>b) then
+        write(a);
+    else
+        write(b);
+    end;
+end

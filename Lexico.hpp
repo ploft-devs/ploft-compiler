@@ -16,9 +16,9 @@ bool isDigit(char c);
 bool isTerminal(std::string s);
 void reseve(Word w);
 char ch=' ';
-Env* env;
 std::fstream* src;
 public:
+Env* env;
 int line=1;
 static std::vector<std::string> terminals;
 static std::vector<char> letters;

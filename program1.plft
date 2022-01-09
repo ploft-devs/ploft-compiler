@@ -8,4 +8,4 @@ begin
     b := 10;
     result := (a * c)/(b + 5 % 345 -3) ;
     write(result)
-end
+end 

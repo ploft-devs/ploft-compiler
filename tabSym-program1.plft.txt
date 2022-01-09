@@ -1,0 +1,24 @@
+declare	Tag: 7
+ID: result	Type: int 
+end	Tag: 2
+mod	Tag: 14
+true	Tag: 43
+if	Tag: 5
+else	Tag: 6
+false	Tag: 44
+ID: c	Type: int 
+begin	Tag: 1
+ID: teste1	Type: 
+while	Tag: 12
+decimal	Tag: 4
+for	Tag: 13
+and	Tag: 39
+then	Tag: 8
+integer	Tag: 3
+or	Tag: 38
+program	Tag: 0
+ID: a	Type: int 
+write	Tag: 10
+read	Tag: 9
+do	Tag: 11
+ID: b	Type: int 

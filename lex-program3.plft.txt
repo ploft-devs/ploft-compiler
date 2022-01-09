@@ -1,0 +1,70 @@
+
+TAG: 0	LEX: program
+ID: teste3
+TAG: 7	LEX: declare
+TAG: 3	LEX: integer
+ID: id
+TAG: 32	LEX: ,
+ID: qtd
+TAG: 32	LEX: ,
+ID: cont
+TAG: 32	LEX: ,
+ID: soma
+TAG: 33	LEX: ;
+TAG: 1	LEX: begin
+ID: qtd
+TAG: 15	LEX: :=
+NUM: 5
+TAG: 33	LEX: ;
+ID: cont
+TAG: 15	LEX: :=
+NUM: 5
+TAG: 33	LEX: ;
+ID: soma
+TAG: 15	LEX: :=
+NUM: 0
+TAG: 33	LEX: ;
+TAG: 11	LEX: do
+TAG: 10	LEX: write
+TAG: 41	LEX: (
+TAG: 71	LEX: Idade: 
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 9	LEX: read
+TAG: 41	LEX: (
+ID: id
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+ID: soma
+TAG: 15	LEX: :=
+ID: soma
+TAG: -1	LEX: #
+ID: id
+TAG: 33	LEX: ;
+ID: cont
+TAG: 15	LEX: :=
+ID: cont
+TAG: 28	LEX: -
+NUM: 1
+TAG: 33	LEX: ;
+TAG: 12	LEX: while
+TAG: 41	LEX: (
+ID: cont
+TAG: 19	LEX: >
+NUM: 0
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 10	LEX: write
+TAG: 41	LEX: (
+TAG: 71	LEX: Media: 
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 10	LEX: write
+TAG: 41	LEX: (
+ID: soma
+TAG: 30	LEX: /
+ID: qtd
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 2	LEX: end
+EOF

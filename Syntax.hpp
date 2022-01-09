@@ -3,7 +3,7 @@
 class Syntax{
     private:
     std::stack<Token*> tokens;
-
+    Token* t;
     public:
     Token* nextToken(){
         if(tokens.empty()){
@@ -23,8 +23,12 @@ class Syntax{
         tokens.push(t);
     }
     Lexico lex;
-    Syntax(Lexico l){
+    std::ofstream out;
+    std::string type;
+    Syntax(Lexico l, std::string ss){
         lex=l;
+        ss = ss + ".cpp";
+        out.open( ss.c_str());
     }
     void erro(std::string s, int i){
         std::cout<<"\nSyntax error on line "<<lex.line<<": Exepect "<<s<<", but found token with ID="<<i<<" !!\n Ignoring tokens...";
@@ -32,7 +36,7 @@ class Syntax{
 
     //S->*program id body $
     bool startAnalysis(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::PRG){
@@ -51,7 +55,7 @@ class Syntax{
 
     //S->program *id body $
     bool e1(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::ID){
@@ -71,7 +75,8 @@ class Syntax{
     //body->*declare decl-lst begin stmt-lst end
     //body->*begin stmt-lst end
     bool e2(){
-        Token* t = nextToken();
+        out<<"#include<iostream>\nint main(){\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::BGN){
@@ -94,7 +99,7 @@ class Syntax{
 
     //S->program id body* $
     bool e0(){
-        Token* t = nextToken();
+        t= nextToken();
         while(t->getTag()!=Tag::EoF){
             erro("End of File", t->getTag());
             t = nextToken();
@@ -114,13 +119,12 @@ class Syntax{
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     //do-while-stmt->*do stmt-list stmt-suffix
     //shift-stmt->*id shiftop constant
     bool e3(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -128,12 +132,8 @@ class Syntax{
                     b= b&&e5(); 
                     break;
 
-                case Tag::IF : 
+                case Tag::IF :
                     b= b&&e6();
-                    break;
-
-                case Tag::WHILE :
-                    b= b&&e7();
                     break;
             
                 case Tag::READ :
@@ -201,13 +201,14 @@ class Syntax{
     //type->*integer
     //type->*decimal
     bool e4(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
                 case Tag::INT :
                 {
                     Token * n = new Token(Tag::TYPE);
+                    n->type="int ";
                     addToken(n);
                     break;
                 }
@@ -221,11 +222,13 @@ class Syntax{
                 case Tag::DEC :
                 {
                     Token * n = new Token(Tag::TYPE);
+                    n->type="float ";
                     addToken(n);
                     break;
                 }
 
                 case Tag::TYPE :
+                    addToken(t);
                     b=b&&e17();
                     break;
 
@@ -248,10 +251,9 @@ class Syntax{
 
 
     //assign-stmt->id *:= simple_expr
-    //shift-stmt->id *shiftop constant
-    //shiftop->*
     bool e5(){
-        Token* t =nextToken();
+        out<<((Word*)t)->lexeme;
+        t=nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::ATRIB){
@@ -283,7 +285,8 @@ class Syntax{
     //num->*num
     //num->*num . num
     bool e6(){
-        Token* t = nextToken();
+        out<<"if(";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -341,84 +344,11 @@ class Syntax{
         return b;
     }
 
-    //while-stmt->while *condition do stmt-list end
-    //condition->*expression
-    //expression->*simple-expr 
-    //expression->*simple-expr relop simple-expr
-    //simple-expr->*term
-    //simple-expr->*simple-expr addop term
-    //simple-expr->*"(" simple-expr ")" ? simple-expr ":" simple-exp
-    //term->*factor-a
-    //term->*term mulop factor-a
-    //factor-a->*factor
-    //factor-a->*not factor
-    //factor-a->* - factor
-    //factor->*id
-    //factor->*num
-    //factor->*"(" expression ")"
-    bool e7(){
-        Token* t = nextToken();
-        bool b=true;
-        while(t->getTag()!=Tag::EoF){
-            switch(t->getTag()){
-                case Tag::OPAR :
-                    b= b&&e21();
-                    break;
-
-                case Tag::NOT :
-                    b= b&&e22();
-                    break;
-
-                case Tag::SUB :
-                    b= b&&e23();
-                    break;
-
-                case Tag::ID :
-                    b= b&&e24();
-                    break;
-
-                case Tag::NUM :
-                    b= b&&e25();
-                    break;
-
-                case Tag::CONDITION :
-                    b= b&&e26();
-                    break;
-
-                case Tag::EXPRESSION :
-                    b=b&&e27();
-                    break;
-
-                case Tag::SIMPLEEXPRESSION :
-                    b=b&&e28();
-                    break;
-
-                case Tag::TERM :
-                    b=b&&e29();
-                    break;
-
-                case Tag::FACTORA :
-                    b=b&&e30();
-                    break;
-
-                case Tag::FACTOR :
-                    b=b&&e31();
-                    break;
-
-                default:
-                    erro("identifier, number, key-words '(' , 'not' or '-'", t->getTag());
-                    b=false;
-            }
-
-            
-            t = nextToken();
-        }
-        return b;
-    }
 
     //read-stmt->read *( id )
     bool e8(){
-        Token* t = nextToken();
+        out<<"std::cin>>";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::OPAR){
@@ -434,7 +364,8 @@ class Syntax{
 
     //write-stmt->write *( writable )
     bool e9(){
-        Token* t = nextToken();
+        out<<"std::cout<<";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::OPAR){
@@ -450,7 +381,8 @@ class Syntax{
 
     //body->begin stmt-lst* end
     bool e10(){
-        Token* t = nextToken();
+        out<<"}";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::END){
@@ -470,7 +402,7 @@ class Syntax{
     
     //stmt-lst-> stmt*; [stmt;]
     bool e11(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::SMC){
@@ -486,6 +418,7 @@ class Syntax{
 
     //stmt->assign-stmt*
     bool e12(){
+        out<<";\n";
         Token* n = new Token(Tag::STMT);
         addToken(n);
         return true;
@@ -507,6 +440,7 @@ class Syntax{
 
     //stmt->read-stmt*
     bool e15(){
+        out<<");\n";
         Token* n = new Token(Tag::STMT);
         addToken(n);
         return true;
@@ -514,6 +448,7 @@ class Syntax{
 
     //stmt->write-stmt*
     bool e16(){
+        out<<");\n";
         Token* n = new Token(Tag::STMT);
         addToken(n);
         return true;
@@ -522,11 +457,16 @@ class Syntax{
     //decl->type *ident-list
     //ident-lst->*id {"," id}
     bool e17(){
-        Token* t = nextToken();
+        Token* type = nextToken();
+        out<<type->type;
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
                 case Tag::ID :
+                    (*(lex.env->table))[((Word*)t)->lexeme].type = type->type;
+                    t->type = type->type;
+                    addToken(t);
                     b=b&&e35();
                     break;
 
@@ -550,7 +490,7 @@ class Syntax{
 
     //decl-lst->decl*; [decl;]
     bool e18(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::SMC){
@@ -566,7 +506,7 @@ class Syntax{
 
     //body->declare decl-lst *begin stmt-lst end
     bool e19(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::BGN){
@@ -593,7 +533,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e20(){
-        Token* t = nextToken();
+        out<<"=";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -661,7 +602,8 @@ class Syntax{
     //expression->*simple-expr 
     //expression->*simple-expr relop simple-expr
     bool e21(){
-        Token* t = nextToken();
+        out<<"(";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -721,7 +663,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e22(){
-        Token* t = nextToken();
+        out<<"!";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -764,7 +707,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e23(){
-        Token* t = nextToken();
+        out<<"-";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -804,6 +748,7 @@ class Syntax{
 
     //factor->id*
     bool e24(){
+        out<<((Word*)t)->lexeme;
         Token* n = new Token(Tag::FACTOR);
         addToken(n);
         return true;
@@ -811,29 +756,26 @@ class Syntax{
 
     //factor->num*
     bool e25(){
+        out<<((Num*)t)->value;
         Token* n = new Token(Tag::FACTOR);
         addToken(n);
         return true;
     }
-
-    //while-stmt->while condition *do stmt-list end
     //if-stmt->if condition *then stmt-list end
     //if-stmt->if condition *then stmt-list else stmt-list end
     bool e26(){
-        Token* t = nextToken();
+        out<<")";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
-                case Tag::DO :
-                    b= b&&e40();
-                    return b;
 
                 case Tag::THEN :
                     b= b&&e41();
                     return b;
                     
                 default: 
-                    erro("identifier, number or key-word '(' ", t->getTag());
+                    erro("key-words 'then'", t->getTag());
                     b=false;
             }
             t = nextToken();
@@ -862,7 +804,7 @@ class Syntax{
     //addop->*-
     //addop->*+
     bool e28(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -880,49 +822,49 @@ class Syntax{
 
                 case Tag::ADD :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::SUB :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::OR :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::LT :
                 {
-                    Token* n = new Token(Tag::RELOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::RELOP);
                     addToken(n);
                     break;
                 }
                     
                 case Tag::GT :
                 {
-                    Token* n = new Token(Tag::RELOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::RELOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::NE :
                 {
-                    Token* n = new Token(Tag::RELOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::RELOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::EQ :
                 {
-                    Token* n = new Token(Tag::RELOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::RELOP);
                     addToken(n);
                     break;
                 }
@@ -948,7 +890,7 @@ class Syntax{
     //mulop->*and
     //mulop->*mod
     bool e29(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -958,28 +900,28 @@ class Syntax{
 
                 case Tag::MLT :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::DIV :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::AND :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::MOD :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
@@ -1014,7 +956,8 @@ class Syntax{
 
     //read-stmt->read ( *id )
     bool e32(){
-        Token* t = nextToken();
+        out<<"(";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::ID){
@@ -1043,7 +986,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e33(){
-        Token* t = nextToken();
+        out<<"(";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1054,6 +998,7 @@ class Syntax{
                 case Tag::LIT :
                 {
                     Token* n = new Token(Tag::WRITEABLE);
+                    out<<"\""<<((Word*)t)->lexeme<<"\"";
                     addToken(n);
                     break;
                 }
@@ -1113,11 +1058,10 @@ class Syntax{
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     bool e34(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1131,10 +1075,6 @@ class Syntax{
                     
                 case Tag::STMTLST : 
                     return b;
-
-                case Tag::WHILE :
-                    b= b&&e7();
-                    break;
             
                 case Tag::READ :
                     b= b&&e8();
@@ -1183,11 +1123,14 @@ class Syntax{
 
     //ident-lst->id* {"," id}
     bool e35(){
-        Token* t = nextToken();
+        out<<((Word*)t)->lexeme;
+        Token* type = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
                 case Tag::COM :
+                    addToken(type);
                     b= b&&e70();
                     return b;
 
@@ -1217,13 +1160,15 @@ class Syntax{
     //type->*integer
     //type->*decimal
     bool e37(){
-        Token* t = nextToken();
+        out<<";\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
                 case Tag::INT :
                 {
                     Token * n = new Token(Tag::TYPE);
+                    n->type="int ";
                     addToken(n);
                     break;
                 }
@@ -1231,12 +1176,14 @@ class Syntax{
                 case Tag::DEC :
                 {
                     Token * n = new Token(Tag::TYPE);
+                    n->type="float ";
                     addToken(n);
                     break;
                 }
 
                 case Tag::TYPE :
                 {
+                    addToken(t);
                     b=b&&e17();
                     break;
                 }
@@ -1268,10 +1215,11 @@ class Syntax{
 
     //factor->"(" expression *")"
     bool e38(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::CPAR){
+                out<<")";
                 Token* n = new Token(Tag::FACTOR);
                 addToken(n);
                 return b;
@@ -1285,7 +1233,7 @@ class Syntax{
 
     //e39 -> e21
 
-    //while-stmt->while condition do *stmt-list end
+
     //stmt-lst-> *stmt; [stmt;]
     //stmt->*assign-stmt
     //stmt->*if-stmt
@@ -1295,30 +1243,26 @@ class Syntax{
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     bool e40(){
-        Token* t = nextToken();
+        out<<"{\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
-                case Tag::STMTLST:
-                    b=b&&e48();
-                    break;
                 case Tag::ID :
+
                     b= b&&e5();
                     break;
 
                 case Tag::IF : 
-                    b= b&&e6();
-                    break;
 
-                case Tag::WHILE :
-                    b= b&&e7();
+                    b= b&&e6();
                     break;
             
                 case Tag::READ :
+
                     b= b&&e8();
                     break;
             
@@ -1371,11 +1315,11 @@ class Syntax{
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     bool e41(){
-        Token* t = nextToken();
+        out<<"{\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1386,12 +1330,8 @@ class Syntax{
                     b= b&&e5();
                     break;
 
-                case Tag::IF : 
+                case Tag::IF :
                     b= b&&e6();
-                    break;
-
-                case Tag::WHILE :
-                    b= b&&e7();
                     break;
             
                 case Tag::READ :
@@ -1438,7 +1378,8 @@ class Syntax{
 
     //simple-expr->"(" simple-expr ")" *? simple-expr ":" simple-exp
     bool e42(){
-        Token* t = nextToken();
+        out<<")";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::QST){
@@ -1465,7 +1406,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e43(){
-        Token* t = nextToken();
+        out<<((Word*)t)->lexeme;
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1529,7 +1471,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e44(){
-        Token* t = nextToken();
+        out<<((Word*)t)->lexeme;
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1584,7 +1527,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e45(){
-        Token* t = nextToken();
+        out<<((Word*)t)->lexeme;
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1633,7 +1577,8 @@ class Syntax{
 
     //read-stmt->read ( id *)
     bool e46(){
-        Token* t = nextToken();
+        out<<((Word*)t)->lexeme;
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::CPAR){
@@ -1650,7 +1595,7 @@ class Syntax{
 
     //write-stmt->write ( writable *)
     bool e47(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::CPAR){
@@ -1665,27 +1610,12 @@ class Syntax{
         return b;
     }
 
-    //while-stmt->while condition do stmt-list *end
-    bool e48(){
-        Token* t = nextToken();
-        bool b=true;
-        while(t->getTag()!=Tag::EoF){
-            if(t->getTag()==Tag::END){
-                Token* n = new Token(Tag::WHILESTMT);
-                addToken(n);
-                return b;
-            }
-            b=false;
-            erro("key-word 'end'", t->getTag());
-            t = nextToken();
-        }
-        return b;
-    }
 
     //if-stmt->if condition then stmt-list *end
     //if-stmt->if condition then stmt-list *else stmt-list end
     bool e49(){
-        Token* t = nextToken();
+        out<<"}\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::END){
@@ -1717,7 +1647,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e50(){
-        Token* t = nextToken();
+        out<<"?";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1727,14 +1658,17 @@ class Syntax{
 
                 case Tag::NOT :
                     b= b&&e22();
+                    
                     break;
 
                 case Tag::SUB :
                     b= b&&e23();
+                    
                     break;
 
                 case Tag::ID :
                     b= b&&e24();
+                    
                     break;
 
                 case Tag::NUM :
@@ -1780,24 +1714,29 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e51(){
-        Token* t = nextToken();
+        out<<((Word*)t)->lexeme;
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
                 case Tag::OPAR :
                     b= b&&e21();
+                    
                     break;
 
                 case Tag::NOT :
                     b= b&&e22();
+                    
                     break;
 
                 case Tag::SUB :
                     b= b&&e23();
+                    
                     break;
 
                 case Tag::ID :
                     b= b&&e24();
+                    
                     break;
 
                 case Tag::NUM :
@@ -1846,7 +1785,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e52(){
-        Token* t = nextToken();
+        out<<"(";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1907,7 +1847,7 @@ class Syntax{
     //mulop->*and
     //mulop->*mo
     bool e53(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1917,28 +1857,28 @@ class Syntax{
 
                 case Tag::MLT :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::DIV :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::AND :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::MOD :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
@@ -1971,11 +1911,11 @@ class Syntax{
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     bool e55(){
-        Token* t = nextToken();
+        out<<"else{\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -1985,10 +1925,6 @@ class Syntax{
 
                 case Tag::IF : 
                     b= b&&e6();
-                    break;
-
-                case Tag::WHILE :
-                    b= b&&e7();
                     break;
             
                 case Tag::READ :
@@ -2044,7 +1980,7 @@ class Syntax{
     //addop->*-
     //addop->*+
     bool e56(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2058,21 +1994,21 @@ class Syntax{
 
                 case Tag::ADD :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::SUB :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::OR :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
@@ -2095,7 +2031,7 @@ class Syntax{
     //addop->*-
     //addop->*+
     bool e57(){
-         Token* t = nextToken();
+         t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2105,21 +2041,21 @@ class Syntax{
 
                 case Tag::ADD :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::SUB :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::OR :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
@@ -2140,7 +2076,7 @@ class Syntax{
 
     //factor->"(" expression *")"
     bool e58(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::CPAR){
@@ -2178,7 +2114,8 @@ class Syntax{
 
     //if-stmt->if condition then stmt-list else stmt-lst *end
     bool e61(){
-        Token* t = nextToken();
+        out<<"}\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::END){
@@ -2206,7 +2143,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e62(){
-        Token* t = nextToken();
+        out<<":";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2263,7 +2201,7 @@ class Syntax{
     //addop->*-
     //addop->*+
     bool e63(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2274,21 +2212,21 @@ class Syntax{
 
                 case Tag::ADD :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::SUB :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::OR :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
@@ -2310,6 +2248,7 @@ class Syntax{
 
     //stmt->do-while-stmt*
     bool e64(){
+        out<<";\n";
         Token* n = new Token(Tag::STMT);
         addToken(n);
         return true;
@@ -2326,20 +2265,26 @@ class Syntax{
     //stmt-lst-> *stmt; [stmt;]
     //stmt->*assign-stmt
     //stmt->*if-stmt
-    //stmt->*while-stmt
     //stmt->*read-stmt
     //stmt->*write-stmt 
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     bool e66(){
-        Token* t = nextToken();
+        out<<"do{\n";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
+            
             switch(t->getTag()){
+                case Tag::STMTSUFFIX :
+                {
+                    Token* n = new Token(Tag::DOWHILESTMT);
+                    addToken(n);
+                    return b;
+                }
                 case Tag::ID :
                     b= b&&e5();
                     break;
@@ -2349,7 +2294,7 @@ class Syntax{
                     break;
 
                 case Tag::WHILE :
-                    b= b&&e7();
+                    b= b&&e76();
                     break;
             
                 case Tag::READ :
@@ -2366,7 +2311,7 @@ class Syntax{
 
                 case Tag::STMT :
                     b= b&&e74();
-                    break;
+                    return b;
             
                 case Tag::ASSIGNSTMT :
                     b= b&&e12();
@@ -2416,7 +2361,7 @@ class Syntax{
     //addop->*-
     //addop->*+
     bool e67(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2427,21 +2372,21 @@ class Syntax{
 
                 case Tag::ADD :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::SUB :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::OR :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
@@ -2464,7 +2409,7 @@ class Syntax{
     //do-while-stmt->do stmt-list *stmt-suffix
     //stmt-suffix->*while condition
     bool e68(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2506,7 +2451,8 @@ class Syntax{
     //factor->*num
     //factor->*"(" expression ")"
     bool e69(){
-        Token* t = nextToken();
+        out<<"while(";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2570,11 +2516,16 @@ class Syntax{
     //decl->type *ident-list
     //ident-lst->*id {"," id}
     bool e70(){
-        Token* t = nextToken();
+        Token* type = nextToken();
+        out<<", ";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
                 case Tag::ID :
+                    (*(lex.env->table))[((Word*)t)->lexeme].type = type->type;
+                    t->type = type->type;
+                    addToken(t);
                     b=b&&e35();
                     return b;
 
@@ -2608,13 +2559,12 @@ class Syntax{
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     //do-while-stmt->*do stmt-list stmt-suffix
     //shift-stmt->*id shiftop constant
     bool e71(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2624,10 +2574,6 @@ class Syntax{
 
                 case Tag::IF : 
                     b= b&&e6();
-                    break;
-
-                case Tag::WHILE :
-                    b= b&&e7();
                     break;
             
                 case Tag::READ :
@@ -2700,7 +2646,7 @@ class Syntax{
     //mulop->*and
     //mulop->*mod
     bool e72(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2710,28 +2656,28 @@ class Syntax{
 
                 case Tag::MLT :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::DIV :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::AND :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::MOD :
                 {
-                    Token* n = new Token(Tag::MULOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::MULOP);
                     addToken(n);
                     break;
                 }
@@ -2753,7 +2699,7 @@ class Syntax{
     //assign-stmt->id := simple_expr*
     //simple-expr->simple-expr *addop term
     bool e73(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2761,7 +2707,7 @@ class Syntax{
                 case Tag::ADDOP :
                 {
                     b= b&&e44();
-                    Token* t = nextToken();
+                    t= nextToken();
                     Token* n = new Token(Tag::ASSIGNSTMT);
                     addToken(n);
                     return b;
@@ -2771,21 +2717,21 @@ class Syntax{
 
                 case Tag::ADD :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
 
                 case Tag::SUB :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
                 
                 case Tag::OR :
                 {
-                    Token* n = new Token(Tag::ADDOP);
+                    Word* n = new Word(((Word*)t)->lexeme,Tag::ADDOP);
                     addToken(n);
                     break;
                 }
@@ -2806,11 +2752,11 @@ class Syntax{
     
     //stmt-lst-> stmt*; [stmt;]
     bool e74(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             if(t->getTag()==Tag::SMC){
-                b=b&&e75();
+                b=b&&e79();
                 break;
             }
             b=false;
@@ -2832,13 +2778,12 @@ class Syntax{
     //assign-stmt->*id := simple_expr
     //if-stmt->*if condition then stmt-list end
     //if-stmt->*if condition then stmt-list else stmt-list end
-    //while-stmt->*while condition do stmt-list end
     //read-stmt->*read ( id )
     //write-stmt->*write ( writable )
     //do-while-stmt->*do stmt-list stmt-suffix
     //shift-stmt->*id shiftop constant
     bool e75(){
-        Token* t = nextToken();
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2918,10 +2863,10 @@ class Syntax{
     }
     
     
-    //while-stmt->while *condition do stmt-list end
     //stmt-suffix->while *condition
     bool e76(){
-        Token* t = nextToken();
+        out<<"}while(";
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
@@ -2980,28 +2925,85 @@ class Syntax{
         return b;
     }
 
-    //while-stmt->while condition *do stmt-list end
     //stmt-suffix->while condition*
     bool e78(){
-        Token* t = nextToken();
+        out<<")";
+        Token* n = new Token(Tag::STMTSUFFIX);
+        addToken(n);
+        return true;
+    }
+
+    //stmt-lst-> stmt;* [stmt;]
+    //stmt->*assign-stmt
+    //stmt->*if-stmt
+    //stmt->*while-stmt
+    //stmt->*read-stmt
+    //stmt->*write-stmt 
+    //assign-stmt->*id := simple_expr
+    //if-stmt->*if condition then stmt-list end
+    //if-stmt->*if condition then stmt-list else stmt-list end
+    //read-stmt->*read ( id )
+    //write-stmt->*write ( writable )
+    bool e79(){
+        t= nextToken();
         bool b=true;
         while(t->getTag()!=Tag::EoF){
             switch(t->getTag()){
+                case Tag::ID :
+                    b= b&&e5();
+                    break;
 
-                case Tag::DO :
-                {
-                    b= b&&e40();
-                    return b;
-                }
+                case Tag::IF : 
+                    b= b&&e6();
+                    break;
                     
+                case Tag::STMTLST : 
+                    b= b&&e68();
+                    return b;
+
+                case Tag::WHILE :
+                    b= b&&e76();
+                    break;
+            
+                case Tag::READ :
+                    b= b&&e8();
+                    break;
+            
+                case Tag::WRT :
+                    b= b&&e9();
+                    break;
+
+                case Tag::STMT :
+                    b= b&&e74();
+                    break;
+            
+                case Tag::ASSIGNSTMT :
+                    b= b&&e12();
+                    break;
+            
+                case Tag::IFSTMT :
+                    b= b&&e13();
+                    break;
+
+                case Tag::WHILESTMT :
+                    b= b&&e14();
+                    break;
+
+                case Tag::READSTMT :
+                    b= b&&e15();
+                    break;
+            
+                case Tag::WRITESTMT :
+                    b= b&&e16();
+                    break;
                 default:
                 {
-                    Token* n = new Token(Tag::STMTSUFFIX);
+                    Token* n = new Token(Tag::STMTLST);
                     addToken(t);
                     addToken(n);
                     return b;
                 }
-                
+
             }
             t = nextToken();
         }

@@ -1,0 +1,39 @@
+
+TAG: 0	LEX: program
+ID: teste5
+TAG: 7	LEX: declare
+TAG: 3	LEX: integer
+ID: j
+TAG: 32	LEX: ,
+ID: k
+TAG: 33	LEX: ;
+TAG: 1	LEX: begin
+TAG: 9	LEX: read
+TAG: 41	LEX: (
+ID: j
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 9	LEX: read
+TAG: 41	LEX: (
+ID: k
+TAG: 42	LEX: )
+TAG: 33	LEX: ;
+TAG: 5	LEX: if
+TAG: 41	LEX: (
+ID: k
+TAG: 40	LEX: <>
+NUM: 0
+TAG: 42	LEX: )
+TAG: 8	LEX: then
+ID: result
+TAG: 15	LEX: :=
+ID: j
+TAG: 30	LEX: /
+ID: k
+TAG: 6	LEX: else
+ID: result
+TAG: 15	LEX: :=
+NUM: 0
+TAG: 2	LEX: end
+TAG: 2	LEX: end
+EOF
